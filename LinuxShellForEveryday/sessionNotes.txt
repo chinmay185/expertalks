@@ -1,0 +1,178 @@
+Linux shell for everyday use
+
+What are your expectations from this session?
+	- what do you want to know about linux shell
+	- there are different types of shell tsh, zsh, ksh, sh, bash etc. we restrict ourselved today to bash.
+
+Give a man a fish and you feed him for a day. Teach a man to fish and you feed him for a lifetime.
+	- i am not here to teach all the linux commands
+	- we'll cover how to learn new commands on ur own, some very useful commands, and problems we face at work
+	- we'll also have fun while doing this. we'll see some not so useful but cool and funny stuff along the way, i call it commercial break between the session!
+
+Don't just be happy with windows, linux gives you a complete ~ (home for the newbies)
+
+Quotes about unix or linux
+
+Be a 'man'. Learn linux, love linux!
+	- lets see how to read man pages
+	- lets try man find. then try man man.
+	- various sections in man pages
+	- exit status and its significance (see man ls for its exit status information)
+	- everything in linux is a file, all devices, processes etc are all files. ls -l /dev to see various types of files, to see file types see man find 
+
+So, what's the first command you should learn?
+	- cd? pwd? ls? man? - but how do you find out commands related to lets say filesystem or processes
+
+How about apropos?
+	- every command generally also has a --help option
+	- check more documentation using info coreutils
+
+~ sweet ~
+	- the user profile files in home. ex. .bashrc, .bash_aliases, .bash_history, .bash_logout
+	- system wide profile files sit in /etc directory
+	- make a change in one of the files and source that change using . filename or source filename
+	- talk about history, searching history using Ctrl+R, running previous command with !!, running previous command that started with text with !text
+	- bypassing history by preprending command with a space for ex, " cat filename" this won't be logged in history.
+	- understanding what is PATH variable and how to add entries to path.
+	- how to export variables and how to make them persistent across computer restarts (adding them in bash file)
+
+aliasing
+	- simple alias example of alias ll='ls -la'
+	- use of aliasing to compensate for typos.. alias xs='cd'; alias vf='cd'; alias moer='more'; alias moew='more'; alias kk='ll' etc
+	- alias gcb='gradle clean build', alias pull='git pull --rebase', alias push='git push origin master'
+	- use alias to prevent accidents. for ex. alias rm = 'rm -i' use \rm to execute plain rm command
+	- some handy and smart aliasing ex, alias ..2='cd ../../' or alias ..3='cd ../../../'
+
+Commerical break!
+	- toilet "Hi Linux"
+	- figlet "Hello Linux"
+	- banner "GNU Linux"
+	- cowsay "I am loving this session"
+	- cowthink "i wish this entire session were like this :-D"
+	- cowsay -f /usr/share/cowsay/cows/tux.cow "enough fun! now get back to work."
+
+IO redirection
+	- the three streams and file descriptors STDIN(0) generally keyboard, STDOUT(1), STDERR(2) both generally console or screen, see ll /dev/std* for details
+	- understanding >, >>, 1>, 1>>, 2>, 2>>, &>, 1>&2, 2>&1, 0<, < (ex, cat < filename)
+	- combining redirections, ex. spell < input.txt > output.txt here, input.txt will be input to spell program and it's ouptut will be stored in output.txt
+	- empyting a file with > filename.txt
+	- understanding /dev/null the blackhole
+
+Do more with less
+	- less is more, but more more than more is, so more is less less, so use more less if you want less more. - Joost Kremers
+	- less allows navingation in both forward and backward directions unlike more
+	- whole file need not be read in the memory unlike vi or more (a big plus for huge files)
+	- some less options for searching, going to a specific line, -F i.e. follow option, going to first line, going to end of file, see help etc.
+	- display multiple files with most
+
+A bit of background
+	- putting jobs in background with &, use xclock &
+	- what to do when you forget to & just use Ctrl+Z
+	- related commands like jobs, fg, bg, kill %JOB_ID
+
+Being futuristic
+	- executing jobs in future using cron, crontab
+	- anacron unlike cron, it does not assume that the machine is running continuously. Hence, it can be used on machines that aren't running 24 hours a day.
+	- at, atq, atrm, batch ex. at 18:02 today /bin/touch /home/chinmay/Desktop/generatedByAtCommand.txt use atq to see jobs, also remove jobs by atrm jobid
+
+Let's explore some commands
+	- ls, ls -a, ls -lS, ls -lrt, ls -lR, export LS_BLOCK_SIZE=human-readable, similarly you have DU_BLOCK_SIZE, DF_BLOCK_SIZE or to apply to all, you have just the BLOCK_SIZE that affect all of ls, du and df. talk about du and df command as well.
+	- cd, cd -, cd /home/chinmay/Desktop, ^Desktop^Downloads this will run previous command replacing Desktop with Downloads. demonstrate usage of CDPATH by export CDPATH=/home/chinmay/Work/
+	- pushd and popd to manipulate directory stack
+	- using "shopt -s cdspell" to correct for spelling mistakes. cd ~/Dekstop will correctly navigate to Desktop
+	- cp, cp -r, mv, rm, rm -f, rm -rf, rm -i
+	- echo "something", echo rm -rf * to check expanded output of any command
+	- touch existingFile, touch newFile
+	- file filename, file *
+	- cat, cat -n, tac, head, head -n 2, tail, tail -n 4, tail -f
+	- creating links using ln, ln -s, ln -P
+	- compression related commands
+		- zip filname.zip filesToZip, unzip filename.zip
+		- tar -cjf archieve.tar.gz filesToTar, tar -xvf archieve.tar.gz, tar -tvf archieve.tar.gz
+		- gzip filename, gzip -r directoryName, gunzip archieve.gz, gunzip -r directoryName
+		- similar commands bzip2, bunzip2
+		- zcat, zgrep, zless, zmore, zdiff 
+	- finding files using find
+		- find all files ending with .txt find . -name "*.txt" also, ignore case with -iname option
+		- find all files modified less than one day find . -f -mtime -1 -type f -exec ls -l {} \;
+		- alternatively we can use xargs find . -name "* *" -type f -print | xargs /bin/rm -f however this doesn't work with file names containing spaces. Solution is to use find . -name "* *" -type f -print0 | xargs -0 /bin/rm -f
+		- how to find empty files inside a directory? find . -empty
+		- finding number of subdirectories current directory contains using find . -type d | wc -l similarly for files
+		- find all files with specific permissions find . -perm 755
+		- finding files which are modified after modification of a particular file find -newer filename
+		- remove empty files in a directory. find . -type d  -empty -exec rmdir {} \; see the error and fix the error using find . -depth -type d  -empty -exec rmdir {} \; i.e. using -depth option
+		- how to find what types of files are present in current directory? find . -type f -exec file {} \;
+	- using locate for quick finding locate -i filename, sudo updatedb
+	- date, date +%s, cal, cal 2013, cal 5 2013
+	- which java, whereis java, tree, time ls
+
+Commerical break!
+	- using shell shortcuts
+		- Ctrl+c, Ctrl+z, Ctrl+w, Ctrl+k, Ctrl+l, Ctrl+a, Ctrl+e, Ctrl+r, Shift+PgUp, Shift+PgDn, Alt+1, Alt+2
+		- sudo !!, !$, !*, 
+	- customizing PS1 and PS2 export PS1="\u@geek'sPlace:"
+	- accessing dictionary from command line curl dict://dict.org/d:transmission
+	- read wikipedia from command line dig +short txt hacker.wp.dg.cx or simply write wiki() { dig +short txt $1.wp.dg.cx; } in .bashrc and use it like "wiki hacker"
+	- xcowsay "let the fun begin"
+	- fortune
+	- fortune -s | cowsay
+	- fortune -s | xcowsay
+	- fire
+	- use lynx to search for stuff
+	- ispell to check for spellings
+	
+Exploring commands continued
+	- basic text editing using vi
+		- navigating using Ctrl+F, Ctrl+B, 1gg, 10gg to navigate to particular line, 
+		- :set number to enable numbering, :set ts=4 to set tab space to 4 spaces
+		- deleting text with x, dw, d$, dG deleting lines using dd, dG to clear the entire file
+		- copying and pasting using yy, p
+		- searching text with /text, :set hlsearch to highlight search findings, :set ic to ignore case while searching
+		- :%s/oldText/newText/gc to replace text in vi
+		- u to undo, Ctrl+R to redo
+		- use Ctrl+P to autocomplete text in vi
+		- :q !sudo tee % to save file in sudo mode.
+	- wc for counting words, lines, characters
+	- grep, grep -i -r "text" filesOrDirPath, grep -A 3 -B 2 -i "text to be matched" input.txt, grep -v "text" file
+	- for advance text manipulation use sed and awk
+	- chmod, chown and linux file permissions for users, groups and others
+	- ps, pstree, ps -ef, top, vmstat, kill -9, kill -15, killall, 
+	- networking related commands
+		- who, w, hostname, ping, uptime, uname -a
+		- ifconfig, netstat, telnet localhost 80, nslookup google.com, ssh, scp, 
+		- finger, 
+		- wget http://www.google.com, curl is similar
+	- sudo, su, passwd, sudo shutdown -h now, sudo reboot,
+	- clear or Ctrl+L, reset
+	- md5sum, cksum
+	- sort to sort lines of text files, du -ha, du -ha | sort, du -ha | sort -h (compare human readable nums), du -a | sort -n (compare numberic values), du -ha | sort -hr (reverse the sort with r)
+	- uniq report or omit duplicate lines (it has to be sorted first) sort duplicateLinesFile.txt | uniq
+	- diff, cut, tr, diff3
+
+With great power comes great responsibility
+	- some commands you should NEVER run.
+	- sudo chmod -R 777 /*
+	- sudo rm -rf /
+	- the fork bomb :(){:|:&};:
+	- mv /home/username/* /dev/null
+	- cat /dev/urandom > /dev/null
+
+Some cool stuff you can use
+	- how to find the name of the linux distro running on the computer? cat /etc/issue
+	- how to copy the output of any command directly to the system clipboard? echo 'something' | xsel --clipboard
+	- how to know whether you have a 32bit or 64bit OS? getconf LONG_BIT
+	- how to know how many CPU cores are there on the computer? cat /proc/cpuinfo | grep processor | wc -l
+		- talk about complete output of /proc/cpuinfo and /proc/meminfo, /proc/mounts, /proc/partitions etc.
+	- how to open an file from the command line using the default application for that file? xdg-open filename, create alias open='xdg-open '
+	- how to rename files containing spaces with underscores? find . -type f -iname "*" -exec rename "s/ /_/g" {} \;
+	- how to convert an entire man page into pdf format for later viewing man -t find | ps2pdf - find.pdf
+	- how to delete a particular line from a file without opening the file "sed -i 8d filename" removes 8th line from file
+	- execute command even after you exit from shell prompt on server, use "nohup commandName &" nohup ignores the HUP(hangup) signal
+	- modifying the welcome message shown to users by changing /etc/motd file
+	- how to fix readonly file system in linux? remount the partition again using mount -o remount,rw /dev/sda5. rw here specifies that the partition be mounted in read-write mode.
+
+Final Commercial break!
+	- train, train1, train2
+	- cmatrix
+	- oneko
+	- clear the screen run figlet and then type That's all folks! Thank you :-)

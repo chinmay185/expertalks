@@ -1,0 +1,144 @@
+Linux Shell for everyday use
+
+CONCEPTS
+--------
+
+DONE
+----
+# redirecting output, error etc to file, reading input from file. STDIN, STDOUT, STDIN, understanding > /dev/null it's like a black hole (read chapter 31 in Advance Bash Scripting guide)
+# commonly used linux commands ls, pwd, ln, cat, mv, cp, rm, touch, date, head, tail, file, tar, zip, bzip2, bunzip2, unzip, more, less, 
+# some advanced but useful commands like  cron, crontab,
+
+NOT DONE
+--------
+# using alias to create meaningful command names. Also, if u have an alias rm = 'rm -i' and u want to execute just rm without -i, u cud do this by typing \rm.
+# understading ~/.bashrc, .bash_aliases, .bash_profile, /etc/bashrc, PATH variable, exporting variables, understanding login and non-login shells
+# exit status and their meaning
+# understanding how to read man pages
+# install xterm and try it out.
+
+# very commonly used must know linux commands ex, cd, which, whereis, ping, clear, du, df, history
+# shell shortcuts ex. Ctrl+c, Ctrl+z, !$, Ctrl+w, Ctrl+k, cd -, Ctrl+l, Ctrl+a, Ctrl+e, Ctrl+r, Shift+PgUp, Shift+PgDn, starting background jobs with &, understanding what ~ or / mean in linux, Alt+1, Alt+2 to switch between terminal windows etc, sudo !! will run the last command with sudo. For ex, if you run apt-get install vi, shell says that u have to be root to do that. so just type sudo !! instead of typing the whole command again with sudo. !text will execute last command in history that started with "text". For ex, !ssh will execute last command in history that started with ssh.
+# Run the previous shell command but replace foo with bar. Suppose you run a command cd /home/chinmay/Desktop/ Now if u run ^Desktop^Downloads it will actually execute cd /home/chinmay/Downloads replacing Desktop with Downloads.
+
+# some advanced but useful commands like find, find with -exec option, grep, locate, sort, uniq, cut, wc, tr, diff, sdiff, diff3, md5sum, cksum, reset, ps, su, sudo, top, pstree, tree, time to find program execution time, shutdown, reboot, uname -a, uptime
+
+# networking related commands like curl, wget, telnet, scp, ssh, netstat, ifconfig, iptables, hostname, dig
+# sed and awk, use sed to replace text in files using shell scripts.
+# regex and their useage
+# nohup and when it is to be used
+# basic text editing using vi or nano
+# editing the welcome message shown to users in motd file.
+# finding required command with apropos, understanding how to use command using man
+# linux file permissions and owner and group information, using chmod, chown
+# WARNING! Fork bomb command :(){ :|:& };:
+# cat /proc/meminfo, cat /proc/cpuinfo etc.
+# sudo getconf LONG_BIT to know whether you have a 32bit or 64bit OS running on your computer
+# see commands in http://varunbpatil.github.io/2012/09/19/linux-tricks/#.UXV8zrVkM1M
+# dictionary from command line curl dict://dict.org/d:complexWord
+
+
+DEMO
+----
+# remove all .svn subdirectories in a given directory. find . -iname ".svn" -exec echo {} \; will print all the .svn directories found in the current directory. To delete all those .svn directories, use find . -iname ".svn" -exec rm -rf {} \; 
+# To see what types of files are present in current directory use find . -type f -exec file {} \; To find files modified in last 24 hours use find . -mtime 0 To find files with specific permissions, use find . -perm 664
+# use of yes command during fsck or chkdsk where you'd have to manually type yes otherwise. Check internet for an example of this. also demonstrate piping to /dev/null here. yes "oh yes!" > /dev/null
+# how to fix readonly file system in linux? remount the partition again using mount -o remount,rw /dev/sda5. rw here specifies that the partition be mounted in read-write mode.
+# difference between kill -9 and kill -15 i.e. SIGKILL (-9) and SIGTERM (-15)
+# set BLOCK_SIZE=human-readable (to print ls -l or du or df output about file sizes in human readable format.it uses powers of 1024) use BLOCK_SIZE=si to print in powers of 1000 instead of 1024. You can also specifically set DF_BLOCK_SIZE, DU_BLOCK_SIZE or LS_BLOCK_SIZE individually if you want.
+# write a script to replace all the files with spaces with camel case convention. For ex, "my new directory" becomes "myNewDirectory".
+# Remove spaces recursively from all subdirectories of a directory. Just remove echo from the below command to actually run the command. find /path/to/dir -type d | tac | while read LINE; do target=$(dirname "$LINE")/$(basename "$LINE" | tr -d ' '); echo mv "$LINE" "$target"; done 
+
+# split –b500m myBigFile mySmallFIles will split the file 
+# echo rm -rf * will just print what rm -rf * will do. It won't execute rm -rf * actually. Using echo allows you to expand the wildcards to understand what will happen before you actually run the command.
+# "commandName !*" will execute the "commandName" with any arguments you used on your last command. this is similar to "commandName !$" where !$ means last argument of last command. !* means all arguments of last command.
+# write a command to delete all the files (also files with spaces) inside /tmp directory. refer man xargs for examples.
+# show the size of all sub folders in the current directory using du -h --max-depth 1
+# given a file containing absolute file paths of files, one per line, write a script to extract just the actual file names.
+# come up with a funny or witty linux command by using commands like cat, man, finger, who, nice,  etc..
+# remove empty files in a directory. find . -depth  -type d  -empty -exec rmdir {} \;
+# compare two directory trees to find out if they have common files.
+# delete all the files older than specific date in a directory, or delete all files which were last updated 100 days ago.
+# remove top n and bottom m lines from a file.
+# command to count all the directories inside a given directory. Similarly, a command to count all the files inside a given directory.
+# use of aliasing to compensate for typos.. alias xs='cd'; alias vf='cd'; alias moer='more'; alias moew='more'; alias kk='ll'
+# Find a file with a pattern in name: function ff() { find . -type f -iname '*'$*'*' -ls ; }
+# Find a file with pattern $1 in name and Execute $2 on it:
+function fe() { find . -type f -iname '*'${1:-}'*' -exec ${2:-file} {} \; ; }
+# display contents of a directory in a decreasing order of file or directory sizes.
+# eject /dev/cdrom to eject cdrom
+# find text in multiple files 
+# some sample use of vi to edit files
+# how do I run some script of command everytime I restart my computer? add that in /etc/profile or create a startup service.
+# grep -A 3 -B 2 -i "text to be matched" input.txt this command prints the matched line along with 3 lines after it and 2 lines before it.
+# don't grep grep. For ex. ps -ef |grep sendmail prints "chinmay   2630  2025  0 19:40 pts/1    00:00:00 grep --color=auto sendmail" if the sendmail is not running, it still greps for the grep process. To avoid this, use ps -ef |grep sendmail | grep -v grep
+# find empty files using find . -empty
+# download all urls mentioned in the urls.txt file using cat urls.txt | xargs wget -c
+
+
+SOME COOL STUFF
+---------------
+# try these commands - toilet, figlet, cosway, "fortune -s | cowsay", banner, sl, fortune|fudd, cowsay -f /usr/share/cowsay/cows/tux.cow "linux is cool", cowthink "howwwww", xpenguins, cmatrix, oneko, xcowsay, hash
+# changing the prompt name i.e. modifying PS1 variable.
+# display a clock on top right corner in terminal while sleep 1;do tput sc;tput cup 0 $(($(tput cols)-29));date;tput rc;done &
+# changing motd file to display custom welcome msg for users logging into the system.
+# use fortune command to display random interesting quote or short piece of writing.
+# useful functions .bashrc and .bash_profile files can be found in Appendix L of Advance bash scripting guide
+# simple timer using "time read" or using "time cat" or using time read -N 1 or time read -t 10 (timer for 10 seconds)
+# watch star wars via telnet. telnet towel.blinkenlights.nl or telnet towel.blinkenlights.nl 666
+# compare a remote file with a local file using ssh user@host cat /path/to/remotefile | diff /path/to/localfile -
+# exchange two adjacent characters quickly using Ctrl+t for ex if u type ehco "something" and hover over c in echo and press Ctrl+t it exchanges c with h. Similarly to exchange two adjacent words quickly, type Atl+t but Alt opens up a menu on top, so alternate shortcut is Esc+t For ex. u type foo bar baz and u want to exchange bar and baz, just press Esc+t placing ur cursor at baz and ur done! Most of these are emacs shortcuts!!
+# read wikipedia via DNS using dig +short txt hacker.wp.dg.cx will print short info from wiki about hacker. u can make an alias like wiki() {dig +short txt $1.wp.dg.cx; } and then type wiki hacker
+# "nice man woman" No manual entry for woman
+# in the end, show the train running on a command line, show fire with ascii characters.
+# dirty linux command: who girl; look; talk; date; strip; touch; unzip; finger; head; mount; uptime; fsck; more; fsck; more; yes; yes; more; unmount; make; clean; sleep;
+
+WHERE TO GO FROM HERE / RESOURCES
+---------------------------------
+# the linux documentation project
+# man pages
+# bashoneliners.com
+
+
+SLIDES
+------
+SEARCH ON THE NET FOR AWESOME LINUX ONE LINERS or ONE LINER COMMANDS
+SEARCH ON THE NET FOR FUNNY PRESENTATIONS FOR LINUX COMMANDS 
+
+EXPLORE AWESOME VI COMMANDS
+
+DONE
+----
+Title: ~ sweet ~. Desc: talk about home, ~, .bash* files in home directory
+Title: Do more with less, less is more powerful than more.
+Title: A bit of background. Desc: describe jobs, fg, bg, killing jobs etc. use xclock to display clock and then put that in background and forground etc.
+Title: Being 'futuristic' Desc: describe how to execute jobs in future for ex using cron, crontab, at, etc.. how to check if job actually ran? where it sends the logs etc.
+
+NOT DONE
+--------
+Title: What's the first command u should learn? Desc: talk about apropos and man pages, --help option in each command, also about info coreutils.
+Title: Being 'fortunate' Desc: talk about fortune command
+Title: Shortcuts Desc: describe all the shell shortcuts
+Title: Funny commands Desc: describe all the funny command like wc
+Title: Following the links.. Desc: describe ln command and difference between hard and soft links
+
+# Image: make me a coffee, sudo make me a coffee image. Desc: Importance of sudo, su and their usages. Examples of commands you should not run while sudoing. 
+- sudo chmod -R 755 /*
+- sudo rm -rf /
+Continuing to above, some other harmful commands include:
+- the fork bomb :(){:|:&};:
+- mv /home/username/* /dev/null
+
+Title: Redirections Desc: IO redirection, redirecting STDOUT, STDERR etc. Note that the command "> filename" will empty the file. Combining redirections using "spell < input.txt > output.txt". here input.txt will be passed as an input to spell program and it's ouptut will be stored in output.txt
+Title: Linux awesome one liners Desc: awesome one liner commands, for ex. to find word frequencies in a file use "tr -c a-zA-Z '\n' < /media/E/Chinmay/Study/Expertalks/LinuxShellForEverydayUse | sed '/^$/d' | sort | uniq -i -c | less". Also, to turn every character to uppercase in a file, use awk '{ print toupper($0) }' fileanme.txt
+Title: The 'awk'ward moment Desc: using awk to accomplish tasks
+Title: So u though u know cd Desc: productivity tips for simple cd command using export CDPATH, using aliases for navigating up n levels (for ex, to navigate up 3 directorie, use alias ..3='cd ../../../' etc), using cd - to go to previous directory, using pushd and popd to manipulate directory stack, using "shopt -s cdspell" to automatically correct mistyped directory names on cd. for ex. it correctly navigates to ~/Desktop when you say "cd Dekstop"
+Title: vi tips Desc: Typically, u open file in vi, change it and then realize it's a readonly file. Instead of saving that file in some temp location and then moving it to required location just use this one line shortcut in vi. :q !sudo tee % This runs sudo tee filename (i.e. %) which takes the contents of the file edited in vim and writes it to the file (while being root). All done!
+
+- mount and mount points, exporting variable, 
+- some linux basic history, what is kernel, what does it mean by "everything in linux is a file", talk about linux distributions like redhat, suse, ubuntu, mint, debian, rpm
+- how to install software in linux using package manager
+- ps and its options
+- /usr/bin and PATH
+- tty
+- install lynx

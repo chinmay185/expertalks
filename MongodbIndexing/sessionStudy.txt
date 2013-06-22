@@ -1,0 +1,71 @@
+# why can we only create one index at a time in background in mongodb?
+# how do we know when the background index creation is complete?
+# setup demo for foreground index to see how it locks the complete database, and why does it lock the complete database and not just the collection on which we're creating an index?
+# a query may use only one index (except for disjuncts of $or queries.). Design ur queries such that the use only one index. It's efficient that way. Explain this with an example.
+# all the collections will have index on primary key. i.e. _id field. Only capped collections don't have this _id field index as the documents are stored in insertion order in capped collections.
+# For query, db.users.find({'username' : 'something'}).sort({'created_at' : -1}); a SINGLE query is executed on the database server including the fields in find and sort. Hence, in this case it makes sense to have a compound index on username and created_at field.
+# imagine we have an index on {userid: 1, votes: 1, created-at: -1}. In order for queries to use index, the range has to be last. i.e. {userid: 1, votes: {'$gt': 1}} will use the index, but not {userid: {'$gt': 1}, votes: {'$gt': 1}}
+# for performance, at minimum, your indexes has to be in RAM. Check the index sizes using totalIndexSize and stats methods. Also, some of your working dataset has be in memory as well for faster access.
+# You can set profiling level to 2 and see every query that's logged in system.profile. The system.profile is a capped collection of 128k size
+# ensureIndex blocks slaves as well. When you run ensureIndex on primary, it block primary and it also makes an entry in system.indexes collection for primary. That record is then replicated to secondaries and they start building the index themselves and thereby blocking secondaries. There are two approaches, either run the indexes in background in production or take one secondary out of the replica set, build the index there, and plug it back in the replica set. It'll catch up with the master soon. Also, make sure your oplog is large so that it can handle the delay in case you run the indexing on a working replica set.
+# Sometimes the most efficient solution is actually not to use an index. In general, if a query is returning a half or more of the collection, it will be more efficient for the database to just do a table scan instead of having to look up the index and then the value for almost every single document. Thus, for queries such as checking whether a key exists or determining whether a boolean value is true or false, it may actually be better to not use an index at all.
+# Is there a hook somewhere in the shell where you can specify a "startup" script to run when the shell first starts (similar to a login script in unix). I know there are commands to execute scripts from within the shell and also to pass scripts on the command line when starting the mongo shell. Just wondering if there's a standard location or something like that that the mongo shell automatically looks at startup. - YES. If you're running Linux (and most likely Mac), you can create a javascript file in your home directory. Call this file .mongorc.js and put whatever javacript commands in it that you would like. Any functions or variables described in the file would then be available to any of the mongo shells you open. On windows, Just drop the .mongorc.js file into the directory defined by the 'homepath' env var. i.e. you can drop the file under c:\users\username directory.
+# Index names are, by default, keyname1_dir1_keyname2_dir2_..._keynameN_dirN, where  keynameXis the index’s key and  dirXis the index’s direction (1 or -1). There is a limit to the number of characters in an index name, so complex indexes may need custom names to be created. A call to getLastErrorwill show whether the index creation succeeded or why it didn’t. Ex. of how to create an index with a name is: db.foo.ensureIndex({"a" : 1, "b" : 1, "c" : 1, ..., "z" : 1}, {"name" : "alphabet"});
+# If you have a compound index on "a-b", then a second index on "a" alone will be redundant. There are exceptions. If b is a multikey index, it may make sense to have indexes on both a-b and a. Demonstrate this with example.
+# There are several questions to keep in mind when deciding what indexes to create:
+1. What are the queries you are doing? Some of these keys will need to be indexed.
+2. What is the correct direction for each key?
+3. How is this going to scale? Is there a different ordering of keys that would keep more of the frequently used portions of the index in memory?
+If you can answer these questions, you are ready to index your data.
+# Creating indexes on existing documents is slightly faster than creating the index first and then inserting all of the documents. Of course, creating an index beforehand is an option only if you’re populating a new collection from scratch.
+
+
+
+# instance where indexes won't be used :
+- $ne, $not, $exists operators
+- tricky arithmetic: $mod
+- most regex queries like /a/ You can use prefix queries like /^a/ check if those use indexes.
+- queries with $where clause. for ex. $where a > b etc.
+- map/reduce can't take advantages of indexes. However, you can pass query filters to map/reduce when you don't need to map/reduce on entire collection.
+# sometimes you have to shape the data so that you can take advantage of indexes. For ex. use $elemMatch operator for elements in array. (refer to Indexing matters webcast, at 27:30 mins)
+# empirical query optimizer in mongodb: if we issue a query, which can use any of the multiple indexes available, it starts several query plans using each of the possible indexes in parallel, and cache the plan that wins for future. It retries each of plans again after some time to ensure the fastest plan is used. You can also force a query plan by hinting an index. Capped collections use {$natural: 1} hint for traversing the collection.
+# if you have a compound index that includes geospatial index keys, it is mandatory that the geospatial key be first in the compound index. Why?
+# it is currently not possible to have different indexes on primary and secondaries. It's a feature request that'll be considered soon. However, in case of replica sets, it is possible to have NO indexes on secondaries and indexes only on primary. However that slave will not be able to become a master in case master crashes.
+# does mongodb support only one geospatial index per collection? Why?
+# If you call sort on a key that is not indexed, MongoDB needs to pull all of that data into memory to sort it. Thus, there’s a limit on the amount you can sort without an index: you can’t sort a terabyte of data in memory. Once your collection is too big to sort in memory, MongoDB will just return an error for queries that try.
+
+
+
+Indexes:
+--------
+- how indexes are using for sorting using db.collection.query().sort();
+- hinting and index.
+- situations where indexes may not be appropriate. For ex. for queries such as checking whether a key exists or determining whether a boolean value is true or false, it may actually be better to not use an index at all.
+- indexing keys in embedded documents.
+- compound unique index used in GridFS.
+- stress the fact that a query can use only one index. i.e. if u have index on field "a" and another index on field "b", and you query for {"a" : "something", b : "something else"} only one index can be used here. There are rare exceptions to this rule. For instance, queries with $or may use a different index for each clause of the $or query. But each individual clause by itself still uses just one index. Demostrate this with example.
+- there can be at most 64 indexes per collection in mongodb
+- the order of compound indexes matters.
+- if a particular collection has 10 indexes, then that makes 10 separate structures to modify on each insert. This holds for any write operation, whether you’re removing a document or updating a given document’s indexed keys. So, don't index every field in the document. 
+- Even with all the right indexes in place, it’s still possible that those indexes won’t result in faster queries. This occurs when indexes and a working data set don’t fit in RAM. Demostrate this with huge dataset if possible. At minimum, you need to make sure that your indexes will fit in RAM. Also, it's good to have some working dataset in the RAM as well.
+- the indexes are stored in db.system.indexes collection.
+- explain B-Trees and their working and sizing information in mongodb (from Mongodb in Action book)
+- building large indexes in background, checking current indexing operation using db.currentOp() method, offline indexing in production environment, building indexes again using db.collection.reIndex() method if the indexes become fragmented due to lot of deletions on the collection. 
+- mongodb logs slow queries (that take more than 100ms) by default, this time can be set while starting mongodb using --slowms option.
+- using mongodb profiler. i.e. using db.setProfilingLevel(2, 30); etc. and what it means. What are various profiling levels (0, 1 and 2). All profiled queries go in db.system.profile collection which is a capped collection of size 128kb by default.
+- using and understanding db.query.explain(); and its output. Explaining $maxElement and $minElement in explain output for range based queries like {x : {$gt : 100}}. Explain the meaning of nscanned, n, indexOnly etc fields in the response of explain() function.
+- what happens when more than one index can be used for one query. How mongo query optimizer tries various plans in parallel and chooses the one that wins. And, also, how it retries those query plans again and again to make sure that it uses the optimal plan. Using expain(true); instead of just explain() will show all the plans tried and their output. (Explained very well in Mongodb, the Definitive Guide)
+- db.collection.stats() and db.collection.totalIndexSize()
+
+
+- Types of indexes:
+	- unique index and dropDups option
+	- sparse index (also, unique sparse index)
+	- multikey index
+- geospatial indexes (2d and 3d) and compound geospatial indexes. (Explained very well in Mongodb, the Definitive Guide)
+- instance where indexes won't be used :
+	- $ne, $not, $exists operators
+	- tricky arithmetic: $mod
+	- most regex queries like /a/ You can use prefix queries like /^a/ check if those use indexes.
+	- queries with $where clause. for ex. $where a > b etc.
+	- map/reduce can't take advantages of indexes. However, you can pass query filters to map/reduce when you don't need to map/reduce on entire collection.
