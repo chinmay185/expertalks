@@ -1,4 +1,4 @@
-Accptance Testing using CasperJS
+Acceptance Testing using CasperJS
 ==========
 ### Pre-requisites
 - node, npm, casperjs and phantomjs installed
