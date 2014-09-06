@@ -1,0 +1,74 @@
+Gradle 
+======
+Gradle expresses its build files in Groovy.
+
+Every Gradle build file is an executable Groovy script.
+
+Gradle tasks are not one-off declarations of build activity, but are first-class objects in the Gradle programming environment. 
+
+Closure added to the task name without the left-shift operator doesn’t create additional task action code at all. Instead, it is a configuration block. The configuration block of a task is run during Gradle’s configuration lifecycle phase, which runs before the execution phase, when task actions are executed.
+
+Every time Gradle executes a build, it runs through three lifecycle phases: initialization, configuration, and execution. Execution is the phase in which build tasks are executed in the order required by their dependency relationships. Configuration is the phase in which those task objects are assembled into an internal object model, usually called the DAG (for directed acyclic graph). Initialization is the phase in which Gradle decides which projects are to participate in the build. The latter phase is important in multiproject builds.
+
+Configuration closures are additive just like action closures. All build configuration code runs every time you run a Gradle build file, regardless of whether any given task runs during execution.
+
+The configuration block is the p)lace to set up variables and data structures that will be needed by the task action when (and if) it runs later on in the build. The configuration structure gives you the opportunity to turn your build’s tasks into a rich object model populated with information about the build, raher than a mere set of build actions to be executed in some sequence. Without this distinction between configuration and action, you’d have to build additional complexity into your task dependency relationships, resulting in a more fragile build and a much less expressive means of communicating the build’s essential data structures.
+
+Gradle is creating an internal object model of your build before executing it. This is, in fact, explicitly what Gradle is doing. Every task you declare is actually a task object contained within the overall project. A task object has properties and methods just like any other object. We can even control the type of each task object, and access unique, type-specific functionality accordingly.
+
+By default, each new task receives the type of DefaultTask. The DefaultTask doesn't actually do anything like compiling the code, creating a war etc but they do contain the functionality required for them to interface with the Gradle project model. 
+
+Methods of DefaultTask
+1) dependsOn(task) - Adds a task as a dependency of the calling task. A depended-on task will always run before the task that depends on it. A task can depend on more than on tasks. Examples are as follows:
+task loadTestData {
+	dependsOn << compileTestClasses
+	dependsOn << createSchema
+}
+
+task loadTestData {
+	dependsOn compileTestClasses, createSchema
+}
+
+task loadTestData {
+	dependsOn 'createSchema' // the single quote is not mandatory
+}
+
+task loadTestData
+loadTestData.dependsOn compileTestClasses, createSchema
+
+task loadTestData(dependsOn: [compileTestClasses, createSchema]) // Groovy list syntax.
+
+2) doFirst(closure) - Adds a block of executable code to the beginning of a task’s action. The doFirst method allows you to add a bit of behavior to the beginning of an existing action, even if that action is defined by a build file or a plug-in you don’t control. The doFirst method is additive. Example:
+
+task setupDatabaseTests << {
+	// This is the task's existing action
+	println 'load test data'
+}
+setupDatabaseTests.doFirst {
+	println 'create schema'
+}
+When we execute "gradle setupDatabaseTests", it prints:
+create schema
+load test data
+
+Alternative syntax:
+task setupDatabaseTests << {
+	println 'load test data'
+}
+setupDatabaseTests {
+	doFirst {
+		println 'create schema'
+	}
+}
+
+3) doLast(task) - The doLast method is very similar to the doFirst() method, except that it appends behavior to the end of an action, rather than before it.
+
+4) onlyIf(closure) - The onlyIf method allows you to express a predicate which determines whether a task should be executed. The value of the predicate is the value returned by the closure. Using this method, you can disable the execution of a task which might otherwise run as a normal part of the build’s dependency chain. For example,
+
+task loadTestData(dependsOn: createSchema) << {
+	println 'load test data'
+}
+loadTestData.onlyIf {
+	System.properties['load.data'] == 'true'
+}
+
