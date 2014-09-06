@@ -26,7 +26,7 @@ expertalks
 - Types of Indexes
 - Indexing Gotchas, Duplicate, slow indexes
 
-### Accptance Testing using CasperJS
+### Acceptance Testing using CasperJS
 - What and Why of Acceptance Testing
 - What is Node.js
 - What is CasperJS and how it can be used to write end to end functional tests
