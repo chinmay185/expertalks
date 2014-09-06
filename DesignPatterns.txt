@@ -1,0 +1,263 @@
+Our job is to implement measurementsChanged() so that it updates the three displays for current conditions, weather stats, and forecast.
+
+class WeatherData {
+	getTemperature()
+	getHumidity()
+	getPressure()
+	measurementsChanged()
+	// other methods
+}
+
+Three displays
+1. Current conditions (current temp, humidity and pressure)
+2. Weather stats (avg temp, min temp and max temp)
+3. Weather forecast
+
+Maybe more displays in future?
+
+First implementation
+
+public class WeatherData {
+	// instance variable declarations
+	public WeatherData(CurrentConditionsDisplay display1, StatisticsDisplay display2, ForecastDisplay display3) {
+		this.currentConditionsDisplay = display1;
+		this.statisticsDisplay = display2;
+		this.forecastDisplay = display3;
+	}
+	public void measurementsChanged() {
+		float temp = getTemperature();
+		float humidity = getHumidity();
+		float pressure = getPressure();
+
+		currentConditionsDisplay.update(temp, humidity, pressure);
+		statisticsDisplay.update(temp, humidity, pressure);
+		forecastDisplay.update(temp, humidity, pressure);
+	}
+}
+
+Pros and Cons:
+- Does this satisfy OCP?
+- What if we wanted to add a new display? For every new display element we need to alter code.
+- How do I remove (or add) a particular display at runtime if it is no longer needed?
+- The display elements don’t implement a common interface. So lets work on this.
+
+Second Implementation
+
+public class WeatherData {
+	List<Display> displays;
+
+	public WeatherData() {
+		displays = new ArrayList<Display>();
+		displays.add(new CurrentConditionsDisplay());
+		displays.add(new StatisticsDisplay());
+		displays.add(new ForecastDisplay());
+	}
+
+	public void measurementsChanged() {
+		float temp = getTemperature();
+		float humidity = getHumidity();
+		float pressure = getPressure();
+
+		for (Display display: displays)
+			display.update(temp, humidity, pressure);
+	}
+}
+
+interface Display { 
+	void update(float temp, float humidity, float pressure); 
+}
+class CurrentConditionsDisplay implements Display {
+	public void update(float temp, float humidity, float pressure) {
+		// display current conditions
+	}
+}
+class StatisticsDisplay implements Display {
+	public void update(float temp, float humidity, float pressure) {
+		// display statistics
+	}
+}
+and so on...
+
+Pros and Cons:
+- Does this satisfy OCP?
+- Is there any way to add or remove displays without altering existing code.
+
+Third Implementation:
+- WeatherData is still aware of all the displays. How can we change this?
+- DIP says higher level modules should not depend on low level modules instead, they should depend on abstractions.
+
+
+public interface Subject {
+	void registerObserver(Observer o);
+	void removeObserver(Observer o);
+	void notifyObservers();
+}
+public interface Observer {
+	void update(float temp, float humidity, float pressure);
+}
+public interface DisplayElement {
+	void display();
+}
+public class WeatherData implements Subject {
+	private List<Observer> observers;
+	private float temperature;
+	private float humidity;
+	private float pressure;
+	public WeatherData() {
+		observers = new ArrayList();
+	}
+	public void registerObserver(Observer o) {
+		observers.add(o);
+	}
+	public void removeObserver(Observer o) {
+		if (observers.contains(o)) {
+			observers.remove(i);
+		}
+	}
+	public void notifyObservers() {
+		for (Observer observer: observers) {
+			observer.update(temperature, humidity, pressure);
+		}
+	}
+	public void measurementsChanged() {
+		notifyObservers();
+	}
+	public void setMeasurements(float temperature, float humidity, float pressure) {
+		this.temperature = temperature;
+		this.humidity = humidity;
+		this.pressure = pressure;
+		measurementsChanged();
+	}
+}
+
+public class CurrentConditionsDisplay implements Observer, DisplayElement {
+	private float temperature;
+	private float humidity;
+	private Subject weatherData;
+
+	public CurrentConditionsDisplay(Subject weatherData) {
+		this.weatherData = weatherData;
+		weatherData.registerObserver(this);
+	}
+	public void update(float temperature, float humidity, float pressure) {
+		this.temperature = temperature;
+		this.humidity = humidity;
+		this.pressure = pressure;
+		display();
+	}
+	public void display() {
+		System.out.println("Current conditions: " + temperature + "F degrees and " + humidity + "% humidity and pressure " + pressure);
+	}
+}
+
+Formal Definition:
+	- Publishers + Subscribers = Observer Pattern
+	- publisher is the SUBJECT and subscribers are OBSERVERS.
+	- one to many relationships
+	- dont depend on specific order for observers to be notified.
+	- Observers are loosely coupled in that the Observable(Subject) knows nothing about them, other than that they implement the Observer Interface
+
+Other Observer examples:
+	- Stock market
+	- Swing GUI objects (event listeners)
+	- News paper or magazine subscriptions
+	- Mailing lists
+	- any other?
+	- exercise
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Decorator:
+
+Step 1:
+- Pizza as abstract class containing abstract cost method and constructor that accepts the pizza toppings
+- all the concrete pizza classes as its subclasses which implement the cost method for ex. 
+	- DeluxeVegPizza (toppings onions, tomato, capsicum, olives and cheese) cost - 350
+	- ChickenPizza (toppings onions, chicken, capsicum and cheese) cost - 400
+	- SuperVeggiesPizza (toppings onions, capsicum, tomato and extra cheese.) cost - 380
+
+Cons:
+- class explosion, api explosion
+- costing logic is repeated in each class
+- what happens when price of an ingredient goes up or down (have to change in multiple places)
+
+
+Step 2:
+- Pizza as abstract class containing abstract cost method and constructor that accepts the pizza toppings
+- pizza stores all the possible toppings as instance fields in it. for ex.
+public class Pizza {
+	public boolean hasCheese;
+	public Cheese cheese;
+	public boolean hasChicken;
+	public Chicken chicken;
+}
+
+- lot of if else
+- how do u add more toppings without modifying existing (OCP violation)
+- irrespective of pizza type, u have all the toppings, for ex. for veg pizzas, hasChicken doesn't make sense.
+- u can't have extra or double cheese pizzas with this
+
+
+Step 3:
+- Pizza as abstract class containing abstract cost method and constructor that accepts the list of pizza toppings
+- public class Pizza {
+	public List<Topping> toppings;
+}
+
+- pizza needs to konw about all types of toppings
+- u need to maintain a list and perform operations on it.
+- u can't have any special treatment to a topping.
+
+Step 4:
+- Pizza as abstract class containing abstract cost method and constructor that accepts the list of pizza toppings
+public class Pizza {
+	public Pizza makePizza()
+}
+
+public class ThinCrustPizza
+
+public class CheesePizza extends Pizza {
+	Pizza p; 
+	CheesePizza(Pizza p) {
+		this.p = p;
+	}
+
+	public Pizza makePizza() {
+		p.makePizza();
+		addToppings();
+		return this;
+	}
+}
+
+- u need a lot of API classes
+- if some code depends on specific type of decorator, 
++ we’re using inheritance in decorator pattern to achieve the type matching, but we aren’t using inheritance to get behavior. We are acquiring new behavior not by inheriting it from a superclass, but by composing objects together. With composition, we can mix and match decorators any way we like... at runtime.
+
+
+
+
+- with decorator u need to know how to create objects urself and order matter for decorator
+
+
+
+
+Flyweight ->
+Chain of Resposibility ->
+Builder -> 
+Composite ->
+Proxy Pattern ->

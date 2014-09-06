@@ -1,0 +1,66 @@
+
+Prerequisite for TDD:
+Domain and High level design and then Red-Green-Refactor
+
+Advantages of TDD:
+Testing production code 
+	- ensure production code works
+	- assurance that prod code works
+1. Code or Design evolves (helps in designing) 
+2. keeps developer focused
+3. refactoring (more courage)
+4. quality - less defects
+5. quick feedback
+6. Radymade doumentation
+
+- Tests should be fast
+- Take small steps (but how small?)
+	- if it's taking more than 10 mins to write a test then the step is not small enough
+	- refactoring should also take less time
+		- don't delay refactoring
+		- 
+
+Downside of TDD
+- Incorrect test
+- needs practice
+- slow tests
+- not enough understanding of domain and high level design
+- difficult to do TDD for legacy code
+
+Mocking
+- identify the system boundaries and (generally) mock the boundaries in unit test
+
+State based verification
++ setup is easy hence the test is easy to understand
+- if dependent object has any issue, then test fails. the failure confuses what's the root cause
++ use state based only for one level. Don't go creating graph of objects as setup.
+
+Interaction based verification
+- test data setup is big as u need to setup all the mocks hence a bit difficult to understand due to mock setup
++ the testing is independent of the dependent object
++ interaction helps to evolve the dependent object (for ex, RateStorage)
+- when u use too many mocks, you kind of predict the implementation.
+
+SOLID
+-----
+S - Single Responsibility Principle
+
+SRP
+---
+- what is my class's responsibility? is there just one reason to change my class?
+- 
+
+OCP
+---
+- ask this question: can we extend similar functionality without modifying existing code? 
+- if conditions and switch blocks are generally the indications of OCP violations.
+- strategy patterns is one way of satisfying OCP.
+
+D - Dependency Inversion Principle
+----------------------------------
+- high level module should not depend on low level module, instead, they should depend on ABSTRACTION.
+	- ex. u want to write a program to take input from keyboard and print it to printer. So you'll write something like Copy class that depends on Keyboard and Printer classes. Here the high level module(Copy) directly depends on low level modules (ex.Keyboard and Printer). To solve this, you would have a Copy class (high level module) that has InputDevice(Keyboard in this case) and OutputDevice(Printer in this case) as two low level modules.
+	- ex. Car, maruti swift depends on K series engine. Basically, dont depend on concretions, depends always on abstration.
+	- abstraction is simliar to contract with some common behavior. Something like a Trait in scala.
+- Abstraction should not depend on implementation details.
+- this principle is NOT to be confused with Dependency Injection or Inversion of Control which only talks about how the dependencies will be made available to the main object.
