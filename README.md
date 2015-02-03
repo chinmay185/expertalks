@@ -1,5 +1,13 @@
 expertalks
 ==========
+### Promises in JavaScript
+- Date: 31-Jan-2015
+- Async JavaScript APIs
+- Callbacks
+- Promises
+- Flow control with promises
+- Q.js
+
 ### Gradle
 - Understand the basics of Gradle
 - Overview of tasks, dependencies and how to use them
