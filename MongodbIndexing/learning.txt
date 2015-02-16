@@ -1,0 +1,42 @@
+Mongodb Query Operators:
+-----------------------
+# range type comparisons (with $lt, $lte, $gt, $gte etc operators) do NOT span data types. For ex, if we store following documents in people collection
+
+db.people.insert({"name": "Alice", "age" :29});
+db.people.insert({"name": "Rob", "age" :22});
+db.people.insert({"name": 42, "age" :39});
+
+and we perform following query,
+db.people.find({"name": {$gt: "A"}});
+
+This won't return any documents that have non string value for "name" field. Similarly, if we perform following query, 
+db.people.find({"name": {$gt: 20}});
+we won't get any documents where value for "name" field has any other data type than integer.
+
+# In mongodb, we can query documents based on the type of data the fields hold. For ex, to find all the people documents, where the name field holds a string value we would write following query.
+db.people.find({name: {$type: 2}}); // 2 is integer type number for String
+The types are represented as integers in BSON spec, for details, refer bsonspec.org
+
+# Mongodb uses perl compatible regular expression library "libpcre" for regex queries on string fields.
+
+# For documents with fields having nested documents as values, the ordering of the fields matter in the query. For ex, if we insert the following document in users collection,
+
+db.users.insert({name: "richard", email: {work: "richard@10gen.com", personal: "richard@example.com"}});
+
+and we were to have following query:
+
+db.users.find({email: {work: "richard@10gen.com", personal: "richard@example.com"}});
+
+it would find the above document, however, if we were to reverse the order of fields in query, like below,
+
+db.users.find({email: {personal: "richard@example.com", work: "richard@10gen.com"}});
+
+it would not match our inserted docuemnt. It turns out that mongodb compares exact BSON representation of the fields and the order matters in the query.
+
+# sort, skip and limit are executed in that order and are executed at database level. i.e. Once you have started iterating a cursor, or even if u called cursor.hasNext(), you can't apply sort, skip or limit operation later. These operations have to be applied before the actually iterating the cursor.
+
+# It is not possible to have isolated write operation inside mongodb. For ex, if an multi update query affects 10 docuements, it's possible that first 3 updates will be done, and that operation will yield to allow other read/write operations to take place, it'll resume again to perform 4 more updates, yield again and at the end, update the remaining 3 documents. However, individual document manipulation is always atomic with respec to any concurrent readers or writers.
+
+# To find if any command succeeded, we can use following command
+db.runCommand({getLastError : 1})
+the above command also returns status of updates i.e. it tell us how many document got updated/upserted for its previous command.
